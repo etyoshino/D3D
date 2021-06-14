@@ -7,7 +7,6 @@ int CALLBACK WinMain(
 	int mCmdShow)
 {
 	Window wnd(800, 600, "Hello Word");
-	Window wnd2(160, 600, "Hello Word");
 
 	MSG msg;
 	bool msgRes;
