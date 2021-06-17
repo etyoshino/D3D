@@ -63,7 +63,7 @@ Window::Window(int width, int height, const char* name) noexcept
 		WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top,
 		nullptr, nullptr, WindowClass::GetInstance(), this
-		);
+	);
 	// check for error
 	if (hWnd == nullptr)
 	{
@@ -95,7 +95,7 @@ LRESULT Window::HandleMsgSetUp(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 	}
 	//if we get a message before the WM_NCCREATE message ,handle with default handle
-	return DefWindowProc(hWnd,msg,wParam,lParam);
+	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
 LRESULT Window::HandleMsgThunk(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -113,7 +113,27 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 		PostQuitMessage(0);
 		return 0;
+	case WM_KILLFOCUS:
+		kbd.ClearState();
+		break;
+		/*************** KEYBOARD MESSAGE ******************/
+	case WM_KEYDOWN:
+	// syskey commands need to be handled to track ALT key (VK_MENU) and F10
+	case WM_SYSKEYDOWN:
+		if (!(lParam & 0x40000000) || kbd.AutoRepeatIsEnabled()) {
+			kbd.OnKeyPressed(static_cast<unsigned char>(wParam));
+		}
+		break;
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		kbd.OnKeyReleased(static_cast<unsigned char>(wParam));
+		break;
+	case WM_CHAR:
+		kbd.OnChar(static_cast<unsigned char>(wParam));
+		break;
+		/*************** KEYBOARD MESSAGE ******************/
 	}
+
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
@@ -161,7 +181,7 @@ const char* Window::HrException::what() const noexcept
 
 const char* Window::HrException::GetType() const noexcept
 {
-	return "Chili Window Exception";
+	return "Window Exception";
 }
 
 HRESULT Window::HrException::GetErrorCode() const noexcept
@@ -177,6 +197,6 @@ std::string Window::HrException::GetErrorDescription() const noexcept
 
 const char* Window::NoGfxException::GetType() const noexcept
 {
-	return "Chili Window Exception [No Graphics]";
+	return "Window Exception [No Graphics]";
 }
 
