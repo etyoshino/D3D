@@ -46,6 +46,9 @@ Window::WindowClass::~WindowClass()
 }
 
 Window::Window(int width, int height, const char* name) noexcept
+	:
+	width(width),
+	height(height)
 {
 	//calculate window size based on desired client region size
 	RECT wr;
@@ -77,6 +80,14 @@ Window::Window(int width, int height, const char* name) noexcept
 Window::~Window()
 {
 	DestroyWindow(hWnd);
+}
+
+void Window::SetTitle(const std::string& title)
+{
+	if (SetWindowText(hWnd, title.c_str()) == 0)
+	{
+		throw CHWND_LAST_EXCEPT();
+	}
 }
 
 LRESULT Window::HandleMsgSetUp(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -116,22 +127,102 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_KILLFOCUS:
 		kbd.ClearState();
 		break;
+
 		/*************** KEYBOARD MESSAGE ******************/
 	case WM_KEYDOWN:
-	// syskey commands need to be handled to track ALT key (VK_MENU) and F10
+		// syskey commands need to be handled to track ALT key (VK_MENU) and F10
 	case WM_SYSKEYDOWN:
+	{
 		if (!(lParam & 0x40000000) || kbd.AutoRepeatIsEnabled()) {
 			kbd.OnKeyPressed(static_cast<unsigned char>(wParam));
 		}
 		break;
+	}
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
+	{
 		kbd.OnKeyReleased(static_cast<unsigned char>(wParam));
 		break;
+	}
 	case WM_CHAR:
+	{
 		kbd.OnChar(static_cast<unsigned char>(wParam));
 		break;
-		/*************** KEYBOARD MESSAGE ******************/
+	}
+	/*************** KEYBOARD MESSAGE ******************/
+
+	/***************** Mouse MESSAGE ********************/
+	case WM_MOUSEMOVE:
+	{
+		POINTS pt = MAKEPOINTS(lParam);
+		// in client region -> log move, and log enter + capture mouse (if not preview)
+		if (pt.x >= 0 && pt.x < width && pt.y>0 && pt.y < height) {
+			mouse.OnMouseMove(pt.x, pt.y);
+			if (!mouse.IsInWindow()) {
+				SetCapture(hWnd);
+				mouse.OnMouseEnter();
+			}
+		}
+		// not in cilient -> log move / maintain capture if button down
+		else
+		{
+			if (wParam & (MK_LBUTTON | MK_RBUTTON)) {
+				mouse.OnMouseMove(pt.x, pt.y);
+			}
+			// button up ->release capture / log event for leaving
+			else
+			{
+				ReleaseCapture();
+				mouse.OnMouseLeave();
+			}
+		}
+		break;
+	}
+	case WM_LBUTTONDOWN:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnLeftPressed(pt.x, pt.y);
+		break;
+	}
+	case WM_LBUTTONUP:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnLeftReleased(pt.x, pt.y);
+		break;
+	}
+	case WM_MBUTTONDOWN:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnMidPressed(pt.x, pt.y);
+		break;
+	}
+	case WM_MBUTTONUP:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnMidReleased(pt.x, pt.y);
+		break;
+	}
+	case WM_RBUTTONDOWN:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnRightPressed(pt.x, pt.y);
+		break;
+	}
+	case WM_RBUTTONUP:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		mouse.OnRightReleased(pt.x, pt.y);
+		break;
+	}
+	case WM_MOUSEWHEEL:
+	{
+		const POINTS pt = MAKEPOINTS(lParam);
+		const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+		mouse.OnWheelDelta(pt.x, pt.y, delta);
+		break;
+	}
+	/***************** Mouse MESSAGE ********************/
+
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
