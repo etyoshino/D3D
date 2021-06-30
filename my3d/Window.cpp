@@ -251,7 +251,6 @@ std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
 	return errorString;
 }
 
-
 Window::HrException::HrException(int line, const char* file, HRESULT hr) noexcept
 	:
 	Exception(line, file),

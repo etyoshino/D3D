@@ -1,4 +1,4 @@
-#include "window.h"
+#include "App.h"
 #include <sstream>
 
 int CALLBACK WinMain(
@@ -7,29 +7,21 @@ int CALLBACK WinMain(
 	LPSTR lpCmdLine,
 	int mCmdShow)
 {
-	Window wnd(800, 600, "Hello Word");
-
-	MSG msg;
-	bool msgRes;
-	while ((msgRes = GetMessage(&msg, nullptr, 0, 0)) > 0) {
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-
-		while (!wnd.mouse.IsEmpty()) {
-			const auto e = wnd.mouse.Read();
-			if (e.GetType() == Mouse::Event::Type::Move) {
-				std::ostringstream oss;
-				oss << "Mouse Position:(" << e.GetPosX() << "," << e.GetPosY() << ")";
-				wnd.SetTitle(oss.str());
-			}
-		}
-
-		/*if (wnd.kbd.KeyIsPressed(VK_MENU)) {
-			MessageBox(nullptr, "Something Happon!", "Space Key Was Pressed", MB_OK);
-		}*/
+	try
+	{
+		return App{}.Go();
 	}
-	if (msgRes == -1) {
-		return -1;
+	catch (const ChiliException& e)
+	{
+		MessageBox(nullptr, e.what(), e.GetType(), MB_OK | MB_ICONEXCLAMATION);
 	}
-	return msg.wParam;
+	catch (const std::exception& e)
+	{
+		MessageBox(nullptr, e.what(), "Standard Exception", MB_OK | MB_ICONEXCLAMATION);
+	}
+	catch (...)
+	{
+		MessageBox(nullptr, "No details available", "Unknown Exception", MB_OK | MB_ICONEXCLAMATION);
+	}
+	return -1;
 }
