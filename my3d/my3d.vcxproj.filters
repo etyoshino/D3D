@@ -97,4 +97,15 @@
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="DXGetErrorDescription.inl">
+      <Filter>dxerr</Filter>
+    </None>
+    <None Include="DXGetErrorString.inl">
+      <Filter>dxerr</Filter>
+    </None>
+    <None Include="DXTrace.inl">
+      <Filter>dxerr</Filter>
+    </None>
+  </ItemGroup>
 </Project>
