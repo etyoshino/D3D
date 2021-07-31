@@ -48,6 +48,9 @@
     <ClCompile Include="dxerr.cpp">
       <Filter>dxerr</Filter>
     </ClCompile>
+    <ClCompile Include="DxgiInfoManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="WindowsMessageMap.h">
@@ -85,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="dxerr.h">
       <Filter>dxerr</Filter>
+    </ClInclude>
+    <ClInclude Include="DxgiInfoManager.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
