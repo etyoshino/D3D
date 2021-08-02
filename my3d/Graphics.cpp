@@ -3,6 +3,8 @@
 #include <sstream>
 #pragma comment(lib,"d3d11.lib")
 
+namespace wrl = Microsoft::WRL;
+
 #define GFX_EXCEPT_NOINFO(hr) Graphics::HrException( __LINE__,__FILE__,(hr) )
 #define GFX_THROW_NOINFO(hrcall) if( FAILED( hr = (hrcall) ) ) throw Graphics::HrException( __LINE__,__FILE__,hr )
 
@@ -30,7 +32,7 @@ Graphics::Graphics(HWND hWnd)
 	sd.SampleDesc.Quality = 0;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.BufferCount = 1;
-	sd.OutputWindow = (HWND)56456;
+	sd.OutputWindow = hWnd;
 	sd.Windowed = true;
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
@@ -61,30 +63,14 @@ Graphics::Graphics(HWND hWnd)
 
 	
 	//gain access to texture subresource in  swap chain (back buffer)
-	ID3D11Resource* pBackBuffer = nullptr;
-	GFX_THROW_INFO(pSwap->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer)));
+	wrl::ComPtr<ID3D11Resource> pBackBuffer;
+	GFX_THROW_INFO(pSwap->GetBuffer(0, __uuidof(ID3D11Texture2D), &pBackBuffer));
 	GFX_THROW_INFO(pDevice->CreateRenderTargetView(
-		pBackBuffer,
+		pBackBuffer.Get(),
 		nullptr,
 		&pTarget
 	));
-	pBackBuffer->Release();
-}
 
-Graphics::~Graphics()
-{
-	if (pTarget != nullptr) {
-		pTarget->Release();
-	}
-	if (pDevice != nullptr) {
-		pDevice->Release();
-	}
-	if (pSwap != nullptr) {
-		pSwap->Release();
-	}
-	if (pContext != nullptr) {
-		pContext->Release();
-	}
 }
 
 void Graphics::EndFrame()
@@ -109,7 +95,7 @@ void Graphics::EndFrame()
 void Graphics::ClearBuffer(float red, float green, float blue) noexcept
 {
 	const float color[] = { red,green,blue,1.0f };
-	pContext->ClearRenderTargetView(pTarget, color);
+	pContext->ClearRenderTargetView(pTarget.Get(), color);
 };
 
 Graphics::HrException::HrException(int line, const char* file, HRESULT hr, std::vector<std::string>  infoMsgs) noexcept

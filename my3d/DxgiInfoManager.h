@@ -2,6 +2,8 @@
 #include"myWin.h"
 #include<vector>
 #include <string>
+#include <wrl.h>
+#include <dxgidebug.h>
 
 class DxgiInfoManager
 {
@@ -13,6 +15,6 @@ public :
 	std::vector<std::string> GetMessages() const;
 private:
 	unsigned long long next = 0;
-	struct IDXGIInfoQueue* pDxgiInfoQueue = nullptr;
+	Microsoft::WRL::ComPtr<IDXGIInfoQueue> pDxgiInfoQueue;
 };
 
