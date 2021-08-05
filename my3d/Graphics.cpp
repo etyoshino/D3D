@@ -1,8 +1,9 @@
 #include "Graphics.h"
 #include "dxerr.h"
 #include <sstream>
+#include<d3dcompiler.h>
 #pragma comment(lib,"d3d11.lib")
-
+#pragma comment(lib, "D3DCompiler.lib")
 namespace wrl = Microsoft::WRL;
 
 #define GFX_EXCEPT_NOINFO(hr) Graphics::HrException( __LINE__,__FILE__,(hr) )
@@ -63,7 +64,7 @@ Graphics::Graphics(HWND hWnd)
 		&pContext
 	));
 
-	
+
 	//gain access to texture subresource in  swap chain (back buffer)
 	wrl::ComPtr<ID3D11Resource> pBackBuffer;
 	GFX_THROW_INFO(pSwap->GetBuffer(0, __uuidof(ID3D11Texture2D), &pBackBuffer));
@@ -118,12 +119,34 @@ void Graphics::DrawTriangle() {
 	D3D11_SUBRESOURCE_DATA sd = {};
 	sd.pSysMem = vertices;
 	GFX_THROW_INFO(pDevice->CreateBuffer(&bd, &sd, &pVertexBuffer));
-	
+
 	//bind vertex buffer to pipeline
 	const UINT stride = sizeof(Vertex);
 	const UINT offset = 0u;
-	pContext->IASetVertexBuffers(0u, 1u, &pVertexBuffer, &stride, &offset);
-	GFX_THROW_INFO_ONLY(pContext->Draw(3u, 0u));
+	pContext->IASetVertexBuffers(0u, 1u, pVertexBuffer.GetAddressOf(), &stride, &offset);
+
+	wrl::ComPtr<ID3DBlob> pBlob;
+	// create vertex shader
+	wrl::ComPtr<ID3D11VertexShader> pVertexShader;
+	GFX_THROW_INFO(D3DReadFileToBlob(L"VertexShader.cso", &pBlob));
+	GFX_THROW_INFO(pDevice->CreateVertexShader(pBlob->GetBufferPointer(),pBlob->GetBufferSize(),nullptr,&pVertexShader));
+
+	// bind vertex shader
+	pContext->VSSetShader(pVertexShader.Get(), nullptr, 0u);
+	
+	// create pixel shader
+	wrl::ComPtr<ID3D11PixelShader> pPixelShader;
+	GFX_THROW_INFO(D3DReadFileToBlob(L"PixelShader.cso", &pBlob));
+	GFX_THROW_INFO(pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader));
+	
+	// bind pixel shader
+	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0u);
+
+	// bind render target
+	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), 0u);
+
+
+	GFX_THROW_INFO_ONLY(pContext->Draw(std::size(vertices), 0u));
 }
 
 void Graphics::ClearBuffer(float red, float green, float blue) noexcept
