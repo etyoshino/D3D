@@ -121,10 +121,10 @@ LRESULT Window::HandleMsgSetUp(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 	if (msg == WM_NCCREATE) {
 		//extract ptr to window class from creation data
 		const CREATESTRUCTW* pCreateW = reinterpret_cast<CREATESTRUCTW*>(lParam);
-		//lpParam Pointer to a value to be passed to the window through the CREATESTRUCT structure (lpCreateParams member) pointed to 
+		//lpParam Pointer to a value to be passed to the window through the CREATESTRUCT structure (lpCreateParams member) pointed to
 		//by the lParam param of the WM_CREATE message. This message is sent to the created window by this function before it returns.
 		Window* const pWnd = static_cast<Window*>(pCreateW->lpCreateParams);
-		//set WinAPI-managed user data to store ptr to window class 
+		//set WinAPI-managed user data to store ptr to window class
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
 		//set message proc to normal (non-setup) handle now that setup is finished
 		SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&Window::HandleMsgThunk));
@@ -247,7 +247,6 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	/***************** Mouse MESSAGE ********************/
-
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -309,9 +308,7 @@ std::string Window::HrException::GetErrorDescription() const noexcept
 	return Exception::TranslateErrorCode(hr);
 }
 
-
 const char* Window::NoGfxException::GetType() const noexcept
 {
 	return "Window Exception [No Graphics]";
 }
-

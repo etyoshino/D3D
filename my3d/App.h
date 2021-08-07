@@ -14,4 +14,3 @@ private:
 	Window wnd;
 	MyTimer timer;
 };
-

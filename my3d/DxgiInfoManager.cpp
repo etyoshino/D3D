@@ -50,20 +50,20 @@ void DxgiInfoManager::Set()
 
 std::vector<std::string> DxgiInfoManager::GetMessages() const
 {
-    std::vector<std::string> messages;
+	std::vector<std::string> messages;
 	const auto end = pDxgiInfoQueue->GetNumStoredMessages(DXGI_DEBUG_ALL);
-	for( auto i = next; i < end; i++ )
+	for (auto i = next; i < end; i++)
 	{
 		HRESULT hr;
 		SIZE_T messageLength;
 		// get the size of message i in bytes
-		GFX_THROW_NOINFO( pDxgiInfoQueue->GetMessage( DXGI_DEBUG_ALL,i,nullptr,&messageLength ) );
+		GFX_THROW_NOINFO(pDxgiInfoQueue->GetMessage(DXGI_DEBUG_ALL, i, nullptr, &messageLength));
 		// allocate memory for message
-		auto bytes = std::make_unique<byte[]>( messageLength );
+		auto bytes = std::make_unique<byte[]>(messageLength);
 		auto pMessage = reinterpret_cast<DXGI_INFO_QUEUE_MESSAGE*>(bytes.get());
 		// get the message and push its description into the vector
-		GFX_THROW_NOINFO( pDxgiInfoQueue->GetMessage( DXGI_DEBUG_ALL,i,pMessage,&messageLength ) );
-		messages.emplace_back( pMessage->pDescription );
+		GFX_THROW_NOINFO(pDxgiInfoQueue->GetMessage(DXGI_DEBUG_ALL, i, pMessage, &messageLength));
+		messages.emplace_back(pMessage->pDescription);
 	}
 	return messages;
 }

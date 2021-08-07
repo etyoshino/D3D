@@ -7,7 +7,7 @@
 
 class DxgiInfoManager
 {
-public :
+public:
 	DxgiInfoManager();
 	~DxgiInfoManager();
 	DxgiInfoManager& operator=(const DxgiInfoManager&) = delete;
@@ -17,4 +17,3 @@ private:
 	unsigned long long next = 0;
 	Microsoft::WRL::ComPtr<IDXGIInfoQueue> pDxgiInfoQueue;
 };
-

@@ -51,7 +51,7 @@ public:
 	Graphics& operator=(const Graphics&) = delete;
 	~Graphics() = default;
 	void EndFrame();
-	void DrawTriangle();
+	void DrawTriangle(float angle);
 	void ClearBuffer(float red, float green, float blue)noexcept;
 private:
 #ifndef NDEBUG
@@ -62,4 +62,3 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> pContext;
 	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> pTarget;
 };
-

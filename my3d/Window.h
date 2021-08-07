@@ -34,7 +34,7 @@ public:
 		const char* GetType() const noexcept override;
 	};
 private:
-	//singleton manages registration/cleanup of window window class 
+	//singleton manages registration/cleanup of window window class
 	class WindowClass
 	{
 	public:

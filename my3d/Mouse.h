@@ -44,7 +44,7 @@ public:
 			x(0),
 			y(0)
 		{}
-		Event(Type type,const Mouse& parent) noexcept
+		Event(Type type, const Mouse& parent) noexcept
 			:
 			mtype(type),
 			leftIsPressed(parent.leftIsPressed),
@@ -57,7 +57,7 @@ public:
 		{
 			return mtype != Type::Invalid;
 		}
-		Type GetType() const noexcept 
+		Type GetType() const noexcept
 		{
 			return mtype;
 		}
@@ -131,4 +131,3 @@ private:
 	std::queue<Event> buffer;
 	std::queue<RawDelta> rawDeltaBuffer;
 };
-
