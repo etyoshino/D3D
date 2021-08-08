@@ -9,6 +9,7 @@
 class Graphics
 {
 public:
+	friend class Bindable;
 	class Exception : public ChiliException
 	{
 		using ChiliException::ChiliException;
