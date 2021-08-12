@@ -10,4 +10,3 @@ protected:
 	UINT pCount;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pIndexBuffer;
 };
-

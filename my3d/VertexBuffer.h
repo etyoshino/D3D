@@ -17,7 +17,7 @@ public:
 		vbd.Usage = D3D11_USAGE_DEFAULT;
 		vbd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 		vbd.MiscFlags = 0u;
-		vbd.ByteWidth = sizeof(Vbuffer)* vertices.size();
+		vbd.ByteWidth = sizeof(Vbuffer) * vertices.size();
 		vbd.StructureByteStride = sizeof(Vbuffer);
 		D3D11_SUBRESOURCE_DATA vsd = {};
 		vsd.pSysMem = vertices.data();
@@ -28,4 +28,3 @@ protected:
 	UINT pStride;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> pVertexBuffer;
 };
-
