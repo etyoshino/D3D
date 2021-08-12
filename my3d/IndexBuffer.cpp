@@ -22,10 +22,10 @@ IndexBuffer::IndexBuffer(Graphics& gfx, const std::vector<unsigned short>& indic
 
 void IndexBuffer::Bind(Graphics& gfx) noexcept
 {
-	GetContext(gfx)->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u)
+	GetContext(gfx)->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
 }
 
 UINT IndexBuffer::GetCount() const noexcept
 {
-	return 0;
+	return pCount;
 }
