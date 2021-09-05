@@ -3,9 +3,13 @@
 #include <sstream>
 #include<d3dcompiler.h>
 #include "GraphicsThrowMacros.h"
-#pragma comment(lib,"d3d11.lib")
-#pragma comment(lib, "D3DCompiler.lib")
+
 namespace wrl = Microsoft::WRL;
+namespace dx = DirectX;
+
+#pragma comment(lib,"d3d11.lib")
+#pragma comment(lib,"D3DCompiler.lib")
+
 
 Graphics::Graphics(HWND hWnd)
 {
@@ -22,19 +26,19 @@ Graphics::Graphics(HWND hWnd)
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.BufferCount = 1;
 	sd.OutputWindow = hWnd;
-	sd.Windowed = true;
+	sd.Windowed = TRUE;
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = 0;
 
 	UINT swapCreateFlags = 0u;
 #ifndef NDEBUG
 	swapCreateFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif // !NDEBUG
+#endif
 
-	// for checking results of d3d functions
+	// 检查D3D方法返还结果 type:hresult
 	HRESULT hr;
 
-	// create device and front/back buffers, and swap chain and rendering context
+	// 创建一个双缓冲队列，交换链和rendering content
 	GFX_THROW_INFO(D3D11CreateDeviceAndSwapChain(
 		nullptr,
 		D3D_DRIVER_TYPE_HARDWARE,
@@ -50,31 +54,27 @@ Graphics::Graphics(HWND hWnd)
 		&pContext
 	));
 
-	//gain access to texture subresource in  swap chain (back buffer)
+	// 获取交换链中的纹理子资源(后缓冲buffer)
 	wrl::ComPtr<ID3D11Resource> pBackBuffer;
-	GFX_THROW_INFO(pSwap->GetBuffer(0, __uuidof(ID3D11Texture2D), &pBackBuffer));
-	GFX_THROW_INFO(pDevice->CreateRenderTargetView(
-		pBackBuffer.Get(),
-		nullptr,
-		&pTarget
-	));
+	GFX_THROW_INFO(pSwap->GetBuffer(0, __uuidof(ID3D11Resource), &pBackBuffer));
+	GFX_THROW_INFO(pDevice->CreateRenderTargetView(pBackBuffer.Get(), nullptr, &pTarget));
 
-	// create depth stensil state
+	// 设置深度模板状态
 	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
-	dsDesc.DepthEnable = true;
+	dsDesc.DepthEnable = TRUE;
 	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
 	wrl::ComPtr<ID3D11DepthStencilState> pDSState;
 	GFX_THROW_INFO(pDevice->CreateDepthStencilState(&dsDesc, &pDSState));
 
-	// bind depth state
+	// 绑定深度模板状态
 	pContext->OMSetDepthStencilState(pDSState.Get(), 1u);
 
-	// create depth stensil texture
+	// 设置深度模板纹理
 	wrl::ComPtr<ID3D11Texture2D> pDepthStencil;
 	D3D11_TEXTURE2D_DESC descDepth = {};
 	descDepth.Width = 800u;
-	descDepth.Height = 400u;
+	descDepth.Height = 600u;
 	descDepth.MipLevels = 1u;
 	descDepth.ArraySize = 1u;
 	descDepth.Format = DXGI_FORMAT_D32_FLOAT;
@@ -84,20 +84,19 @@ Graphics::Graphics(HWND hWnd)
 	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	GFX_THROW_INFO(pDevice->CreateTexture2D(&descDepth, nullptr, &pDepthStencil));
 
-	// create view of depth stensil texture
+	// 创建深度模板纹理视图
 	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
 	descDSV.Format = DXGI_FORMAT_D32_FLOAT;
 	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	descDSV.Texture2D.MipSlice = 0u;
-
 	GFX_THROW_INFO(pDevice->CreateDepthStencilView(
 		pDepthStencil.Get(), &descDSV, &pDSV
 	));
 
-	// bind depth stensil view to OM
+	// 绑定深度模板试图到输出合并器阶段 OM(output merger)
 	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), pDSV.Get());
 
-	// configure viewport
+	// 配置视图窗口
 	D3D11_VIEWPORT vp;
 	vp.Width = 800.0f;
 	vp.Height = 600.0f;
@@ -113,11 +112,11 @@ void Graphics::EndFrame()
 	HRESULT hr;
 #ifndef NDEBUG
 	infoManager.Set();
-#endif // !NDEBUG
-
+#endif
 	if (FAILED(hr = pSwap->Present(1u, 0u)))
 	{
-		if (hr == DXGI_ERROR_DEVICE_REMOVED) {
+		if (hr == DXGI_ERROR_DEVICE_REMOVED)
+		{
 			throw GFX_DEVICE_REMOVED_EXCEPT(pDevice->GetDeviceRemovedReason());
 		}
 		else
@@ -133,34 +132,38 @@ void Graphics::ClearBuffer(float red, float green, float blue) noexcept
 	pContext->ClearRenderTargetView(pTarget.Get(), color);
 	pContext->ClearDepthStencilView(pDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 }
+
 void Graphics::DrawIndexed(UINT count) noexcept(!IS_DEBUG)
 {
 	GFX_THROW_INFO_ONLY(pContext->DrawIndexed(count, 0u, 0u));
 }
+
 void Graphics::SetProjection(DirectX::FXMMATRIX proj) noexcept
 {
 	projection = proj;
 }
+
 DirectX::XMMATRIX Graphics::GetProjection() const noexcept
 {
 	return projection;
 }
-;
 
 
-
-Graphics::HrException::HrException(int line, const char* file, HRESULT hr, std::vector<std::string>  infoMsgs) noexcept
+// Graphics exception stuff
+Graphics::HrException::HrException(int line, const char* file, HRESULT hr, std::vector<std::string> infoMsgs) noexcept
 	:
 	Exception(line, file),
 	hr(hr)
 {
-	//join  all info message with newlines into single string
-	for (const auto& m : infoMsgs) {
+	// 把新消息加入消息队列
+	for (const auto& m : infoMsgs)
+	{
 		info += m;
 		info.push_back('\n');
 	}
-	//remove final newline if exists
-	if (!info.empty()) {
+	// 删除最后一行存在的换行符
+	if (!info.empty())
+	{
 		info.pop_back();
 	}
 }
@@ -171,9 +174,10 @@ const char* Graphics::HrException::what() const noexcept
 	oss << GetType() << std::endl
 		<< "[Error Code] 0x" << std::hex << std::uppercase << GetErrorCode()
 		<< std::dec << " (" << (unsigned long)GetErrorCode() << ")" << std::endl
-		<< "[Error String ] " << GetErrorString() << std::endl
+		<< "[Error String] " << GetErrorString() << std::endl
 		<< "[Description] " << GetErrorDescription() << std::endl;
-	if (!info.empty()) {
+	if (!info.empty())
+	{
 		oss << "\n[Error Info]\n" << GetErrorInfo() << std::endl << std::endl;
 	}
 	oss << GetOriginString();
@@ -208,27 +212,28 @@ std::string Graphics::HrException::GetErrorInfo() const noexcept
 	return info;
 }
 
+
 const char* Graphics::DeviceRemovedException::GetType() const noexcept
 {
-	return "Graphics Exception [Device Removed]";
+	return "Chili Graphics Exception [Device Removed] (DXGI_ERROR_DEVICE_REMOVED)";
 }
-
 Graphics::InfoException::InfoException(int line, const char* file, std::vector<std::string> infoMsgs) noexcept
 	:
 	Exception(line, file)
 {
-	// join all info messages with newlines into single string
+	// 把新消息加入消息队列
 	for (const auto& m : infoMsgs)
 	{
 		info += m;
 		info.push_back('\n');
 	}
-	// remove final newline if exists
+	// 删除最后一行存在的换行符
 	if (!info.empty())
 	{
 		info.pop_back();
 	}
 }
+
 
 const char* Graphics::InfoException::what() const noexcept
 {

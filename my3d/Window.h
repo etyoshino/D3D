@@ -34,7 +34,10 @@ public:
 		const char* GetType() const noexcept override;
 	};
 private:
-	//singleton manages registration/cleanup of window window class
+	/*
+	* 窗口管理类 
+	* 管理窗口类框/消息循环的注册/清理
+	*/
 	class WindowClass
 	{
 	public:

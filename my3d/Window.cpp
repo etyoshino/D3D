@@ -50,7 +50,7 @@ Window::Window(int width, int height, const char* name) noexcept
 	width(width),
 	height(height)
 {
-	//calculate window size based on desired client region size
+	// 设置窗口位置大小
 	RECT wr;
 	wr.left = 200;
 	wr.right = width + wr.left;
@@ -60,22 +60,22 @@ Window::Window(int width, int height, const char* name) noexcept
 	{
 		throw CHWND_LAST_EXCEPT();
 	}
-	//create window & get hWnd;
+	// 创建窗口拿到窗口实例
 	hWnd = CreateWindow(
 		WindowClass::GetName(), name,
 		WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top,
 		nullptr, nullptr, WindowClass::GetInstance(), this
 	);
-	// check for error
+	// 检查是否拿到实例
 	if (hWnd == nullptr)
 	{
 		throw CHWND_LAST_EXCEPT();
 	}
 
-	// newly created windows start off as hidden
+	// 设置窗口默认显示隐藏
 	ShowWindow(hWnd, SW_SHOWDEFAULT);
-	// create graphics object
+	// 创建 Graphics 实体
 	pGfx = std::make_unique<Graphics>(hWnd);
 }
 
@@ -95,15 +95,16 @@ void Window::SetTitle(const std::string& title)
 std::optional<int> Window::ProcessMessages() noexcept
 {
 	MSG msg;
-	// while queue has messages,remove and dispatch (but do not block on empty queue)
+	// 当队列中有消息时派发执行事件
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-		// check for quir because peekmessage dose not signal this via return val
+		//检查是否时退出消息，这个消息无法被定义的HandleMsgSetUp捕获。所以需要提前拦截
+		// 详解https://blog.csdn.net/yuanhubilie/article/details/8555677
 		if (msg.message == WM_QUIT) {
-			//  return optional wrapping  int (arg to PostQuitMessage is in wparam) signals quit
+			//  返回退出码
 			return msg.wParam;
 		}
 
-		//TranslateMessage will post auxilliary WM_CHAR messages from key msgs
+		//TranslateMessage 将虚拟键消息转换为字符消息
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
@@ -117,16 +118,16 @@ Graphics& Window::Gfx()
 
 LRESULT Window::HandleMsgSetUp(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	//user create parameter passed in from CreateWindow() to store window class pointer at winAPI side
-	if (msg == WM_NCCREATE) {
-		//extract ptr to window class from creation data
+	//　用户在创建窗口时传入的一个处理消息的方法，存储在winAPI的窗口类指针
+	if (msg == WM_NCCREATE) {	//NC--->>non-client非客户区包括标题栏、窗口边框、最大、最小按钮、滚动条等
+		//　从创建的数据中获得窗口的指针
 		const CREATESTRUCTW* pCreateW = reinterpret_cast<CREATESTRUCTW*>(lParam);
-		//lpParam Pointer to a value to be passed to the window through the CREATESTRUCT structure (lpCreateParams member) pointed to
-		//by the lParam param of the WM_CREATE message. This message is sent to the created window by this function before it returns.
+		//lpParam指向通过CREATESTRUCT结构(lpCreateParams成员)传递给窗口的值的指针
+		//通过WM_CREATE消息的lParam参数。此消息在返回之前由该函数发送到创建的窗口
 		Window* const pWnd = static_cast<Window*>(pCreateW->lpCreateParams);
-		//set WinAPI-managed user data to store ptr to window class
+		// 设置WinAPI-managed的用户数据窗口实例
 		SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pWnd));
-		//set message proc to normal (non-setup) handle now that setup is finished
+		// 设置消息进程的处理方式
 		SetWindowLongPtr(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&Window::HandleMsgThunk));
 		return pWnd->HandleMsg(hWnd, msg, wParam, lParam);
 	}
@@ -180,7 +181,7 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_MOUSEMOVE:
 	{
 		POINTS pt = MAKEPOINTS(lParam);
-		// in client region -> log move, and log enter + capture mouse (if not preview)
+		// 鼠标在客户端区域内
 		if (pt.x >= 0 && pt.x < width && pt.y>0 && pt.y < height) {
 			mouse.OnMouseMove(pt.x, pt.y);
 			if (!mouse.IsInWindow()) {
@@ -188,9 +189,10 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				mouse.OnMouseEnter();
 			}
 		}
-		// not in cilient -> log move / maintain capture if button down
+		// 鼠标不在客户端区域内
 		else
 		{
+			// 捕获是否有鼠标事件，更新鼠标位置
 			if (wParam & (MK_LBUTTON | MK_RBUTTON)) {
 				mouse.OnMouseMove(pt.x, pt.y);
 			}
@@ -256,21 +258,21 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 std::string Window::Exception::TranslateErrorCode(HRESULT hr) noexcept
 {
 	char* pMsgBuf = nullptr;
-	// windows will allocate memory for err string and make our pointer point to it
+	// windows 将为错误消息分配内存，并使指针指向它
 	const DWORD nMsgLen = FormatMessage(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER |
 		FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		nullptr, hr, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 		reinterpret_cast<LPSTR>(&pMsgBuf), 0, nullptr
 	);
-	// 0 string length returned indicates a failure
+	// 获取错误结果失败
 	if (nMsgLen == 0)
 	{
 		return "Unidentified error code";
 	}
-	// copy error string from windows-allocated buffer to std::string
+	// 拿出windos-allocated buffer中的错误信息
 	std::string errorString = pMsgBuf;
-	// free windows buffer
+	// 释放 buffer
 	LocalFree(pMsgBuf);
 	return errorString;
 }

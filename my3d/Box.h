@@ -13,11 +13,11 @@ public:
 private:
 	// positional
 	float r;
-	float roll = 0.0f;
-	float pitch = 0.0f;
-	float yaw = 0.0f;
-	float theta;
-	float phi;
+	float roll = 0.0f;      //水平偏航转角	绕Y轴旋转
+	float pitch = 0.0f;		//上下俯仰转角	绕X轴旋转
+	float yaw = 0.0f;		//旋转角			绕Z轴旋转
+	float theta;			//x-y平面上的夹角 同roll
+	float phi;				
 	float chi;
 	// speed(detal/s)
 	float droll;

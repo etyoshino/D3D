@@ -6,11 +6,13 @@ class App
 {
 public:
 	App();
-	// master frame / message loop
+	// Ö¡/ÏûÏ¢Ñ­»·
 	int Go();
+	~App();
 private:
 	void DoFrame();
 private:
 	Window wnd;
 	MyTimer timer;
+	std::vector<std::unique_ptr<class Box>> boxes;
 };

@@ -12,16 +12,16 @@ public:
 	{
 		INFOMAN(gfx);
 
-		D3D11_BUFFER_DESC vbd;
-		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		vbd.Usage = D3D11_USAGE_DEFAULT;
-		vbd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-		vbd.MiscFlags = 0u;
-		vbd.ByteWidth = sizeof(Vbuffer) * vertices.size();
-		vbd.StructureByteStride = sizeof(Vbuffer);
-		D3D11_SUBRESOURCE_DATA vsd = {};
-		vsd.pSysMem = vertices.data();
-		GFX_THROW_INFO(GetDevice(gfx)->CreateBuffer(&vbd, &vsd, &pVertexBuffer));
+		D3D11_BUFFER_DESC bd = {};
+		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bd.Usage = D3D11_USAGE_DEFAULT;
+		bd.CPUAccessFlags = 0u;
+		bd.MiscFlags = 0u;
+		bd.ByteWidth = UINT( sizeof(Vbuffer) * vertices.size() );
+		bd.StructureByteStride = sizeof(Vbuffer);
+		D3D11_SUBRESOURCE_DATA sd = {};
+		sd.pSysMem = vertices.data();
+		GFX_THROW_INFO( GetDevice( gfx )->CreateBuffer( &bd,&sd,&pVertexBuffer ) );
 	};
 	void Bind(Graphics& gfx) noexcept override;
 protected:
