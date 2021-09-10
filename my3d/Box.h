@@ -1,6 +1,7 @@
 #pragma once
-#include "Drawable.h"
-class Box : public Drawable
+#include "DrawableBase.h"
+
+class Box : public DrawableBase<Box>
 {
 public:
 	Box(Graphics& gfx, std::mt19937& rng,
@@ -17,7 +18,7 @@ private:
 	float pitch = 0.0f;		//上下俯仰转角	绕X轴旋转
 	float yaw = 0.0f;		//旋转角			绕Z轴旋转
 	float theta;			//x-y平面上的夹角 同roll
-	float phi;				
+	float phi;
 	float chi;
 	// speed(detal/s)
 	float droll;
@@ -26,6 +27,4 @@ private:
 	float dtheta;
 	float dphi;
 	float dchi;
-
 };
-
