@@ -22,7 +22,7 @@ Window::WindowClass::WindowClass()noexcept
 {
 	WNDCLASSEX wc = { 0 };
 	wc.cbSize = sizeof(wc);
-	wc.style = CS_OWNDC;
+	wc.style = CS_OWNDC | CS_VREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = HandleMsgSetUp;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
@@ -30,7 +30,7 @@ Window::WindowClass::WindowClass()noexcept
 	wc.hIcon = static_cast<HICON>(
 		LoadImage(hInst, MAKEINTRESOURCE(IDI_APPICON),
 			IMAGE_ICON, 16, 16, 0));
-	wc.hCursor = nullptr;
+	wc.hCursor = LoadCursor(0, IDC_ARROW);
 	wc.hbrBackground = nullptr;
 	wc.lpszMenuName = nullptr;
 	wc.lpszClassName = GetName();
@@ -51,11 +51,7 @@ Window::Window(int width, int height, const char* name) noexcept
 	height(height)
 {
 	// 设置窗口位置大小
-	RECT wr;
-	wr.left = 200;
-	wr.right = width + wr.left;
-	wr.top = 200;
-	wr.bottom = wr.top + height;
+	RECT wr = {0 ,0 ,width ,height };
 	if (AdjustWindowRect(&wr, WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, FALSE) == 0)
 	{
 		throw CHWND_LAST_EXCEPT();
@@ -63,7 +59,7 @@ Window::Window(int width, int height, const char* name) noexcept
 	// 创建窗口拿到窗口实例
 	hWnd = CreateWindow(
 		WindowClass::GetName(), name,
-		WS_CAPTION | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SYSMENU,
+		WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU,
 		CW_USEDEFAULT, CW_USEDEFAULT, wr.right - wr.left, wr.bottom - wr.top,
 		nullptr, nullptr, WindowClass::GetInstance(), this
 	);
