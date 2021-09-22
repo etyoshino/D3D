@@ -100,7 +100,7 @@ Surface Surface::FromFile(const std::string& name)
 		if (bitmap.GetLastStatus() != Gdiplus::Status::Ok)
 		{
 			std::stringstream ss;
-			ss << "Loading image [" << name << "]: failed to load";
+			ss << "Loading image [" << name << "]: failed to load.";
 			throw Exception(__LINE__, __FILE__, ss.str());
 		}
 
